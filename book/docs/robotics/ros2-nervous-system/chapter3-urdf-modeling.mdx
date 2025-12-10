@@ -1,0 +1,72 @@
+---
+sidebar_position: 4
+title: "Chapter 3 :Humanoid Description Layer: URDF"
+---
+
+# Humanoid Description Layer: URDF
+
+The **Unified Robot Description Format (URDF)**, an XML-based specification, precisely describes a robot's physical structure, sensors, and actuators within the ROS 2 ecosystem. This chapter explains URDF's components, guiding you to interpret and modify URDF files for humanoid robots to integrate custom designs or sensors.
+
+## URDF Structure: Links, Joints, and Coordinate Frames
+
+URDF defines a robot's kinematics and appearance, crucial for accurate simulation, motion planning, and visualization, especially for humanoids.
+
+### 1. Links: The Robot's Body Parts
+
+**Links** represent rigid body segments (e.g., torso, arm). Each link includes:
+*   **Visual Properties**: Appearance (geometry, color).
+*   **Collision Properties**: Physical interaction with the environment.
+*   **Inertial Properties**: Mass, center of mass, and inertia for dynamic control.
+
+### 2. Joints: Connecting the Links
+
+**Joints** define kinematic and dynamic relationships between links, specifying relative motion. Common types:
+*   **Revolute**: Rotation around one axis (e.g., elbow).
+*   **Prismatic**: Translation along one axis (e.g., linear actuator).
+*   **Fixed**: Rigidly connects two links.
+
+Joints also define their axis, limits, and dynamics.
+
+### 3. Coordinate Frames: Defining Space
+
+Each link and joint has a **coordinate frame** (right-handed Cartesian system). The `base_link` is typically the root. **Transformation Trees** of links and joints allow ROS 2 to calculate positions and orientations, foundational for:
+*   **Forward/Inverse Kinematics**: Robot pose/joint angle calculations.
+*   **Collision Checking**: Detecting physical interference.
+*   **Visualization**: Accurate rendering in tools like RViz or Isaac Sim.
+
+## Interpreting an Existing Humanoid URDF File
+
+Interpreting URDF is key for ROS 2 robotics. Break down the XML structure into components:
+
+### Steps to Interpret a URDF File
+
+1.  **Locate File**: Find `.urdf` or `.xacro` in robot description packages.
+2.  **`<robot>` Tag**: Identifies the robot by its `name` attribute.
+3.  **`<link>` Definitions**: Analyze `name`, `<visual>`, `<collision>`, and `<inertial>` tags for body part properties.
+4.  **`<joint>` Definitions**: Examine `name`, `type` (`revolute`, `prismatic`, `fixed`), `<parent>`, `<child>`, `<origin>` (position/orientation), `<axis>`, and `<limit>` tags.
+5.  **Kinematic Tree**: Trace parent-child relationships from `base_link` to understand robot structure.
+6.  **Sensor Definitions**: Look for `fixed` joints attaching sensor links, often with ROS 2 plugins.
+7.  **XACRO Files**: If used, these (`.xacro`) include modular sub-components.
+
+Effective interpretation allows visualizing robot structure, degrees of freedom, and motion capabilities before modification or control.
+
+## Demonstrating URDF Modifications
+
+Modifying URDF is common for new hardware or custom designs, involving changes to `<link>` and `<joint>` definitions.
+
+### 1. Adding a New Link and Joint (e.g., a Camera to the Head)
+
+Adding a camera: new `<link name="camera_link">` and a `fixed` `<joint name="head_to_camera_joint">` connecting it to `head_link`, defining its `<origin>`.
+
+### 2. Changing Sensor Placement (Modifying `<origin>`)
+
+Repositioning a sensor involves adjusting the `xyz` and `rpy` values within the `<origin>` tag of its corresponding joint.
+
+### 3. Modifying Joint Limits (e.g., Elbow Range of Motion)
+
+Controlling joint range (`lower`, `upper` attributes within `<limit>` tag) is critical for humanoid self-collision avoidance and task performance.
+
+After modification, always re-load the URDF into simulation/visualization tools (e.g., Isaac Sim, RViz) to verify changes. `check_urdf` validates XML syntax.
+
+---
+**Note on Citations**: This content is derived from research on URDF modeling for robotics. For formal publication, all claims should be cross-referenced with official ROS 2 documentation, IEEE/ACM robotics papers, and relevant research, and formatted according to APA citation style.

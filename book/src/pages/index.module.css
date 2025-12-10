@@ -1,0 +1,157 @@
+:root {
+  --accent: #4bc3ff; /* accent underline/glow color */
+  --bg-overlay: rgba(0,0,0,0.56);
+}
+
+/* Hero full-screen */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+
+/* dim overlay on top of background */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+/* content container */
+.content {
+  position: relative;
+  z-index: 2;
+  width: 92%;
+  max-width: 980px;
+  text-align: left;
+  padding: 48px;
+  box-sizing: border-box;
+}
+
+/* Title + subtitle */
+.title {
+  font-size: 3.25rem;
+  margin: 0 0 8px 0;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0 0 28px 0;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.88);
+  opacity: 0.95;
+}
+
+/* Button column - vertical stack */
+.buttonColumn {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Nav button base */
+.navButton {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+  overflow: hidden;
+  position: relative;
+  transition: transform 280ms cubic-bezier(.2,.9,.2,1), box-shadow 280ms ease,
+
+}
+
+/* Label and meta inside the button */
+.btnLabel {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-align: left;
+}
+
+.btnMeta {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.86rem;
+  color: rgba(255,255,255,0.75);
+  opacity: 0.9;
+  text-align: left;
+}
+
+/* Animated underline element */
+.navButton::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  height: 3px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, rgba(75,195,255,0.95), rgba(75,195,255,0.5));
+  filter: blur(6px);
+  transition: transform 360ms cubic-bezier(.2,.9,.2,1);
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+/* small glowing edge on hover (faux 3D) */
+.navButton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent 30%);
+  transition: opacity 220ms ease, transform 220ms ease;
+  transform: translateX(-8px);
+  opacity: 0.0;
+}
+
+/* Hover state - slide + lift + reveal underline */
+.navButton:hover {
+  transform: translateX(8px) translateY(-4px) scale(1.001);
+  box-shadow: 0 12px 36px rgba(13,30,60,0.5);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+}
+
+.navButton:hover::after {
+  transform: scaleX(1);
+}
+
+.navButton:hover::before {
+  transform: translateX(0);
+  opacity: 0.22;
+}
+
+/* Focus accessibility */
+.navButton:focus {
+  outline: 2px solid rgba(75,195,255,0.18);
+  outline-offset: 4px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+  .content { padding: 28px; }
+  .title { font-size: 2.2rem; }
+  .buttonColumn { max-width: 100%; gap: 12px; }
+}

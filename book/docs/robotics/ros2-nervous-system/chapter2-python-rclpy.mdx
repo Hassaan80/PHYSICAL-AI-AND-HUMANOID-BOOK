@@ -1,0 +1,165 @@
+---
+sidebar_position: 3
+title: "Chapter 2 :Python-to-Robot Control: rclpy"
+---
+
+# Python-to-Robot Control: rclpy
+
+Python's dominance in AI and robotics research, due to its simplicity and rich libraries, is leveraged by ROS 2's `rclpy`. This Python client library enables seamless integration of Python-based AI agents with the ROS 2 ecosystem, facilitating control and interaction with humanoid robots.
+
+## `rclpy` Fundamentals: Bridging Python and ROS 2
+
+`rclpy` is the official Python client library for ROS 2, providing APIs to create ROS 2 nodes and interact with the ecosystem. It bridges Python's high-level flexibility with ROS 2's real-time, distributed nature.
+
+### Core Concepts of `rclpy`
+
+1.  **Node Creation**: Create ROS 2 nodes in Python, encapsulating specific functionalities.
+    ```python
+    import rclpy
+    from rclpy.node import Node
+
+    class MyPythonNode(Node):
+        def __init__(self):
+            super().__init__('my_python_node'); self.get_logger().info('My Python node is running!')
+
+    def main(args=None):
+        rclpy.init(args=args); node = MyPythonNode(); rclpy.spin(node); node.destroy_node(); rclpy.shutdown()
+    if __name__ == '__main__': main()
+    ```
+
+2.  **Spinning**: `rclpy.spin()` keeps nodes alive, processing callbacks from publishers, servers, and timers.
+3.  **Logging**: Built-in logging (`self.get_logger().info()`) aids debugging and monitoring.
+4.  **Parameters**: Nodes can declare and manage dynamic configuration parameters.
+
+### Role in Python-ROS 2 Interfacing for AI Agents
+
+`rclpy` is critical for AI agents:
+
+*   **Access to Robot Data**: Python nodes subscribe to ROS 2 topics to receive real-time sensor data.
+*   **Issuing Control Commands**: Agents publish to topics or call services/actions to send commands.
+*   **Integration with AI Frameworks**: Seamlessly integrates Python AI/ML libraries.
+*   **Rapid Prototyping**: Facilitates quick development and iteration of AI algorithms.
+*   **Distributed Computing**: Nodes can run across multiple computing units.
+
+`rclpy` empowers Python-based intelligence within the ROS 2 communication graph, transforming computational agents into active participants in the robot's nervous system.
+
+## `rclpy` Publishers and Subscribers for AI Agent Communication
+
+The publish-subscribe model enables real-time AI agent interaction: agents **subscribe** to sensor data and **publish** control commands.
+
+### 1. Receiving Sensor Data (Subscriber)
+
+An AI agent perceiving the environment:
+
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class AISensorSubscriber(Node):
+    def __init__(self):
+        super().__init__('ai_sensor_subscriber'); self.subscription = self.create_subscription(String, 'robot_sensor_data', self.sensor_data_callback, 10); self.subscription
+    def sensor_data_callback(self, msg):
+        self.get_logger().info(f'AI Agent received sensor data: "{msg.data}"')
+def main(args=None):
+    rclpy.init(args=args); node = AISensorSubscriber(); rclpy.spin(node); node.destroy_node(); rclpy.shutdown()
+if __name__ == '__main__': main()
+```
+
+### 2. Sending Control Commands (Publisher)
+
+An AI agent sending commands:
+
+```python
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+
+class AICommandPublisher(Node):
+    def __init__(self):
+        super().__init__('ai_command_publisher'); self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.timer = self.create_timer(0.1, self.timer_callback); self.linear_x = 0.1
+    def timer_callback(self):
+        cmd_msg = Twist(); cmd_msg.linear.x = self.linear_x; self.publisher_.publish(cmd_msg)
+        self.get_logger().info(f'AI Agent publishing command: linear.x={cmd_msg.linear.x}')
+def main(args=None):
+    rclpy.init(args=args); node = AICommandPublisher(); rclpy.spin(node); node.destroy_node(); rclpy.shutdown()
+if __name__ == '__main__': main()
+```
+
+### 3. How to Run
+
+1.  Place code in ROS 2 package `src`.
+2.  Build package.
+3.  Run in separate terminals: `ros2 run pkg ai_sensor_subscriber`, `ros2 run pkg ai_command_publisher`.
+
+## `rclpy` Services for AI Agent Interaction
+
+For discrete requests, AI agents use `rclpy` services as **service clients** to trigger robot actions or query states.
+
+### 1. Robot Action Server (Service Server)
+
+Robot controller service server (`PerformGesture.srv`):
+```
+string gesture_name
+---
+bool success
+string message
+```
+Server code:
+```python
+import rclpy
+from rclpy.node import Node
+from your_package_name.srv import PerformGesture
+
+class RobotGestureServer(Node):
+    def __init__(self):
+        super().__init__('robot_gesture_server'); self.srv = self.create_service(PerformGesture, 'perform_gesture', self.perform_gesture_callback)
+        self.get_logger().info('Robot Gesture Service Server ready.')
+    def perform_gesture_callback(self, request, response):
+        self.get_logger().info(f'Received gesture request: {request.gesture_name}')
+        response.success = True if request.gesture_name == "wave" else False
+        response.message = f"Successfully performed '{request.gesture_name}'" if response.success else f"Gesture '{request.gesture_name}' not recognized."
+        self.get_logger().info(response.message); return response
+def main(args=None):
+    rclpy.init(args=args); node = RobotGestureServer(); rclpy.spin(node); rclpy.shutdown()
+if __name__ == '__main__': main()
+```
+
+### 2. AI Agent Client (Service Client)
+
+AI agent calling service:
+
+```python
+import rclpy
+from rclpy.node import Node
+from your_package_name.srv import PerformGesture; import sys
+
+class AIGestureClient(Node):
+    def __init__(self):
+        super().__init__('ai_gesture_client'); self.client = self.create_client(PerformGesture, 'perform_gesture')
+        while not self.client.wait_for_service(timeout_sec=1.0): self.get_logger().info('Service not available, waiting...')
+        self.req = PerformGesture.Request()
+    def send_gesture_request(self, gesture_name):
+        self.req.gesture_name = gesture_name; self.future = self.client.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future); return self.future.result()
+
+def main(args=None):
+    rclpy.init(args=args)
+    if len(sys.argv) != 2: print('Usage: ros2 run pkg ai_gesture_client <gesture>'); rclpy.shutdown(); sys.exit(1)
+    client_node = AIGestureClient(); gesture = sys.argv[1]; response = client_node.send_request(gesture)
+    client_node.get_logger().info(f'Robot response: Success={response.success}, Message="{response.message}"')
+    client_node.destroy_node(); rclpy.shutdown()
+if __name__ == '__main__': main()
+```
+
+### 3. How to Run
+
+1.  Define `PerformGesture.srv` and place Python nodes in your ROS 2 package `src`.
+2.  Build package.
+3.  Run in separate terminals: `ros2 run pkg robot_gesture_server` and `ros2 run pkg ai_gesture_client wave`.
+
+This example highlights how `rclpy` acts as the nervous system for an AI agent, connecting its perception, decision-making, and action capabilities within the ROS 2 ecosystem for controlling simulated humanoid robots.
+
+---
+**Note on Citations**: This content is derived from research on ROS 2 `rclpy` and AI agent integration. For formal publication, all claims should be cross-referenced with official ROS 2 documentation, IEEE/ACM robotics papers, and relevant research, and formatted according to APA citation style.
